@@ -1,17 +1,11 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
 import { eq, like } from "drizzle-orm";
 import { DBTableWithID, DBTableWithName, DBTypeHelper } from "./types";
-
-const sqlite = new Database("data/gardenlog.db");
-const db = drizzle(sqlite, {
-  logger: process.env.DBLOGGER === "true" ? true : false,
-});
+import type { IDB } from "./setup";
 
 export async function CreateDBRecord<
   Table extends DBTableWithID,
   TypeHelper extends DBTypeHelper
->(dbTable: Table, newRecord: TypeHelper) {
+>(db: IDB, dbTable: Table, newRecord: TypeHelper) {
   return db
     .insert(dbTable)
     .values(newRecord)
@@ -22,11 +16,12 @@ export async function CreateDBRecord<
 export async function UpdateDBRecord<
   Table extends DBTableWithID,
   TypeHelper extends DBTypeHelper
->(dbTable: Table, id: number, values: TypeHelper) {
+>(db: IDB, dbTable: Table, id: number, values: TypeHelper) {
   return db.update(dbTable).set(values).where(eq(dbTable.id, id)).run();
 }
 
 export async function DeleteDBRecord<Table extends DBTableWithID>(
+  db: IDB,
   dbTable: Table,
   id: number
 ) {
@@ -34,6 +29,7 @@ export async function DeleteDBRecord<Table extends DBTableWithID>(
 }
 
 export async function GetDBRecord<Table extends DBTableWithID>(
+  db: IDB,
   dbTable: Table,
   id: number
 ) {
@@ -41,6 +37,7 @@ export async function GetDBRecord<Table extends DBTableWithID>(
 }
 
 export async function GetDBRecords<Table extends DBTableWithName>(
+  db: IDB,
   dbTable: Table,
   search?: string
 ) {
