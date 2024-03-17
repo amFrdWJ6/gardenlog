@@ -1,16 +1,41 @@
 import { eq, like } from "drizzle-orm";
 import { DBTableWithID, DBTableWithName, DBTypeHelper } from "./types";
 import type { IDB } from "./setup";
+import { DataValidationError } from "./errors";
+
+function isSQLiteConstraintNull(error: unknown): error is { code: string } {
+  if (error && typeof error === "object" && "code" in error) {
+    return error.code === "SQLITE_CONSTRAINT_NOTNULL";
+  }
+  return false;
+}
 
 export async function CreateDBRecord<
   Table extends DBTableWithID,
   TypeHelper extends DBTypeHelper
 >(db: IDB, dbTable: Table, newRecord: TypeHelper) {
-  return db
-    .insert(dbTable)
-    .values(newRecord)
-    .returning({ id: dbTable.id })
-    .get() as { id: number };
+  try {
+    return db
+      .insert(dbTable)
+      .values(newRecord)
+      .returning({ id: dbTable.id })
+      .get() as { id: number };
+  } catch (error) {
+    if (isSQLiteConstraintNull(error)) {
+      // FIX: Element implicitly has an 'any' type because expression of type 'symbol' can't be used to index type 'SQLiteTable<TableConfig> & { id: DBExtendColumn; }'.ts(7053)
+      const table = dbTable[Symbol.for("drizzle:Name")];
+      const data = JSON.stringify(newRecord, (_, v) =>
+        v === undefined ? null : v
+      );
+      // TODO: better msg + cleanup
+      console.log(`Invalid data: ${data} for table: ${table}`);
+      throw new DataValidationError(
+        `Invalid data: ${newRecord} for table: ${table}`
+      );
+    } else {
+      throw error;
+    }
+  }
 }
 
 export async function UpdateDBRecord<
