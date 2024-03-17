@@ -1,51 +1,15 @@
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
-import {
-  ColumnBaseConfig,
-  ColumnDataType,
-  Placeholder,
-  SQL,
-  Table,
-  eq,
-  like,
-} from "drizzle-orm";
-import {
-  SQLiteColumn,
-  SQLiteTable,
-  TableConfig,
-} from "drizzle-orm/sqlite-core";
+import { eq, like } from "drizzle-orm";
+import { DBTableWithID, DBTableWithName, DBTypeHelper } from "./types";
 
 const sqlite = new Database("data/gardenlog.db");
 const db = drizzle(sqlite, {
   logger: process.env.DBLOGGER === "true" ? true : false,
 });
 
-type DBTable = SQLiteTable<TableConfig>;
-type DBExtendColumn = SQLiteColumn<
-  ColumnBaseConfig<ColumnDataType, string>,
-  object
->;
-type DBTableWithID = DBTable & { id: DBExtendColumn };
-type DBTableWithName = DBTable & { name: DBExtendColumn };
-
-type DBTypeHelper = {
-  [K in keyof {
-    [Key in keyof Table["$inferInsert"]]:
-      | SQL<unknown>
-      | Placeholder<string, any>
-      | Table["$inferInsert"][Key];
-  }]: {
-    [Key in keyof Table["$inferInsert"]]:
-      | SQL<unknown>
-      | Placeholder<string, any>
-      | Table["$inferInsert"][Key];
-  }[K];
-};
-
 export async function CreateDBRecord<
-  Table extends SQLiteTable<TableConfig> & {
-    id: SQLiteColumn<ColumnBaseConfig<ColumnDataType, string>, object>;
-  },
+  Table extends DBTableWithID,
   TypeHelper extends DBTypeHelper
 >(dbTable: Table, newRecord: TypeHelper) {
   return db
