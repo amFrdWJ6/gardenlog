@@ -1,4 +1,4 @@
-import { InferInsertModel } from "drizzle-orm";
+import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import {
   AnySQLiteColumn,
   index,
@@ -23,6 +23,7 @@ export const tblPlant = sqliteTable(
   }
 );
 export type WPlant = InferInsertModel<typeof tblPlant>;
+export type RPlant = InferSelectModel<typeof tblPlant>;
 
 export const tblLog = sqliteTable(
   "log",
@@ -48,6 +49,7 @@ export const tblLog = sqliteTable(
   }
 );
 export type WLog = InferInsertModel<typeof tblLog>;
+export type RLog = InferSelectModel<typeof tblLog>;
 
 export const tblLogRecord = sqliteTable(
   "log_record",
@@ -65,6 +67,7 @@ export const tblLogRecord = sqliteTable(
   }
 );
 export type WLogRecord = InferInsertModel<typeof tblLogRecord>;
+export type RLogRecord = InferSelectModel<typeof tblLogRecord>;
 
 export const tblNote = sqliteTable(
   "note",
@@ -84,12 +87,14 @@ export const tblNote = sqliteTable(
   }
 );
 export type WNote = InferInsertModel<typeof tblNote>;
+export type RNote = InferSelectModel<typeof tblNote>;
 
 export const tblLocation = sqliteTable("location", {
   id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
 });
 export type WLocation = InferInsertModel<typeof tblLocation>;
+export type RLocation = InferSelectModel<typeof tblLocation>;
 
 // map requirements:
 // - location can have a several maps (last year, planning for next years, variations)
